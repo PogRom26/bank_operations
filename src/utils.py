@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from dateutil.relativedelta import relativedelta
 
 import openpyxl
 import pandas as pd
@@ -44,6 +45,8 @@ def card_list_with_stars():
       card_list_w_stars.append(card)
 
   return card_list_w_stars
+
+# print(card_list_with_stars())
 
 
 def last_four_digit_card(list_with_card):
@@ -99,7 +102,39 @@ def total_summ_cashback():
 # print(total_summ_cashback())
 
 
+def total_summ_from_file(user_date:str = "12.07.2021"):
 
+  # 1. Загрузка данных
+  project_dir = Path(__file__).parent.parent
+  data_dir = "data"
+  file = 'operations.xlsx'
+  file_path = os.path.join(project_dir, data_dir, file)
+
+  df = pd.read_excel(file_path)
+
+  # Преобразуем в datetime объект
+  if isinstance(user_date, str):
+    date_obj = datetime.strptime(user_date, "%d.%m.%Y")
+  else:
+    date_obj = user_date
+
+  # Начало и конец месяца
+  start_of_month = date_obj.replace(day=1)
+  end_of_month = date_obj + relativedelta(day=31)
+
+  print(f"Начало месяца: {start_of_month.strftime('%d.%m.%Y')}")
+  print(f"Конец месяца: {end_of_month.strftime('%d.%m.%Y')}")
+
+
+  total_spent = (df.groupby('Номер карты')['Сумма платежа']
+            .agg(lambda x: x.sum())
+            .reset_index()
+            .sort_values('Сумма платежа', ascending=False))
+
+
+  return total_spent
+
+print(total_summ_from_file("01.12.2021"))
 
 
 
