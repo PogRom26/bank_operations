@@ -1,0 +1,52 @@
+[project]
+name = "masks-for-bank"
+version = "0.1.0"
+description = "my super project))"
+authors = [
+    {name = "Roman",email = "romzes26@yandex.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests (>=2.32.4,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "pandas (>=2.3.1,<3.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^7.2.0"
+black = "^25.1.0"
+mypy = "^1.15.0"
+isort = "^6.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+
+[tool.black]
+# Максимальная длина строки
+line-length = 119
+# Файлы, которые не нужно форматировать
+exclude = '''\.git'''
+
+[tool.isort]
+# максимальная длина строки
+line_length = 119
+
+[tool.mypy]
+disallow_untyped_defs = true
+warn_return_any = true
+exclude = 'venv'
+
+[tool.poetry]
+name = "masks-for-bank"
+version = "0.1.0"
+description = "my super project))"
+authors = ["Roman <romzes26@yandex.ru>"]

@@ -1,0 +1,4 @@
+user_sitting = {
+    "user_currencies": ["USD", "EUR"],
+    "user_stocks": ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
+}
