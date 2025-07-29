@@ -7,7 +7,7 @@ import pandas as pd
 
 
 
-def greeting():
+def greeting(date:datetime = datetime.now()):
     """Определяет какое сейчас время и выводит соответствующие приветствие"""
 
     current_time = datetime.now()
@@ -16,7 +16,7 @@ def greeting():
         return "Доброе утро!"
 
     elif 12 < current_time.hour < 18:
-        return "Добрые день!"
+        return "Добрый день!"
 
     elif 18 < current_time.hour < 24:
         return "Добрый вечер!"
@@ -55,8 +55,8 @@ def last_four_digit_card(list_with_card):
 
   return list_card_wo_stars
 
-x = card_list_with_stars()
-print(last_four_digit_card(x))
+# x = card_list_with_stars()
+# print(last_four_digit_card(x))
 
 
 def total_summ_spent():
@@ -75,7 +75,7 @@ def total_summ_spent():
 
   return total_spent
 
-print(total_summ_spent())
+# print(total_summ_spent())
 
 
 def total_summ_cashback():
@@ -96,7 +96,7 @@ def total_summ_cashback():
 
   return total_cashback
 
-print(total_summ_cashback())
+# print(total_summ_cashback())
 
 
 
