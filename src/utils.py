@@ -64,30 +64,9 @@ def last_four_digit_card(list_with_card):
 
 
 
-def total_summ_cashback():
-  """По каждой карте: кешбэк (1 рубль на каждые 100 рублей)."""
+def total_summ_from_file(user_date:str = "04.09.2021"):
 
-  project_dir = Path(__file__).parent.parent
-  data_dir = "data"
-  file = 'operations.xlsx'
-  file_path = os.path.join(project_dir, data_dir, file)
-
-  df = pd.read_excel(file_path)
-
-  total_cashback = (df.groupby('Номер карты')['Кэшбэк']
-                 .agg(lambda x: x.abs().sum())
-                 .reset_index()
-                 .sort_values('Кэшбэк', ascending=False))
-
-
-  return total_cashback
-
-# print(total_summ_cashback())
-
-
-def total_summ_from_file(user_date:str = "12.07.2021"):
-
-  # 1. Загрузка данных
+  # Загрузка данных
   project_dir = Path(__file__).parent.parent
   data_dir = "data"
   file = 'operations.xlsx'
@@ -107,28 +86,65 @@ def total_summ_from_file(user_date:str = "12.07.2021"):
   start_of_month = date_obj.replace(day=1)
   end_of_month = date_obj + relativedelta(day=31)
 
-  print(f"Начало месяца: {start_of_month.strftime('%d.%m.%Y')}")
-  print(f"Конец месяца: {end_of_month.strftime('%d.%m.%Y')}")
+  # print(f"Начало месяца: {start_of_month.strftime('%d.%m.%Y')}")
+  # print(f"Конец месяца: {end_of_month.strftime('%d.%m.%Y')}")
 
   filtered_data = df[(df['Дата операции'] >= start_of_month) & (df['Дата операции'] <= end_of_month)]
 
+  # Считаем суммы расходов по картам
   total_spent = (filtered_data.groupby('Номер карты')['Сумма платежа']
             .agg(lambda x: x.sum())
             .reset_index()
             .sort_values('Сумма платежа', ascending=True))
 
-  # cash_back = round(((filtered_data['Сумма платежа'])/100), 2)
-
+  # Считаем суммы кэшбэка по картам
   cash_back = (filtered_data.groupby('Номер карты')['Сумма кэшбэка']
             .agg(lambda x: x.sum())
             .reset_index()
             .sort_values('Сумма кэшбэка', ascending=True))
 
+  # Объединяем суммы расходов и суммы кэшбэка
   merged_df = pd.merge(total_spent, cash_back, on='Номер карты')
 
   return merged_df
 
-print(total_summ_from_file("01.06.2020"))
+# print(total_summ_from_file("01.06.2020"))
+
+
+def top_transactions (user_date:str = "04.09.2021"):
+  """Топ-5 транзакций по сумме платежа."""
+  # Загрузка данных
+  project_dir = Path(__file__).parent.parent
+  data_dir = "data"
+  file = 'operations.xlsx'
+  file_path = os.path.join(project_dir, data_dir, file)
+
+  df = pd.read_excel(file_path)
+  df['Дата операции'] = pd.to_datetime(df['Дата операции'], dayfirst=True)
+
+  # Преобразуем в datetime объект
+  if isinstance(user_date, str):
+    date_obj = datetime.strptime(user_date, "%d.%m.%Y")
+  else:
+    date_obj = user_date
+
+  # Начало и конец месяца
+  start_of_month = date_obj.replace(day=1)
+  end_of_month = date_obj + relativedelta(day=31)
+
+  filtered_data = df[(df['Дата операции'] >= start_of_month) & (df['Дата операции'] <= end_of_month)]
+
+  top_5 = filtered_data.nlargest(5, 'Сумма платежа')[['Дата платежа', 'Сумма платежа', 'Категория', 'Описание']]
+
+  return top_5
+
+# print(top_transactions("11.12.2021"))
+
+
+def currency_rates():
+
+  pass
+
 
 
 
