@@ -62,23 +62,6 @@ def last_four_digit_card(list_with_card):
 # print(last_four_digit_card(x))
 
 
-def total_summ_spent():
-  """По каждой карте: общая сумма расходов"""
-
-  project_dir = Path(__file__).parent.parent
-  data_dir = "data"
-  file = 'operations.xlsx'
-  file_path = os.path.join(project_dir, data_dir, file)
-
-  df = pd.read_excel(file_path)
-  total_spent = (df.groupby('Номер карты')['Сумма операции']
-            .agg(lambda x: x.abs().sum())
-            .reset_index()
-            .sort_values('Сумма операции', ascending=False))
-
-  return total_spent
-
-# print(total_summ_spent())
 
 
 def total_summ_cashback():
@@ -111,6 +94,8 @@ def total_summ_from_file(user_date:str = "12.07.2021"):
   file_path = os.path.join(project_dir, data_dir, file)
 
   df = pd.read_excel(file_path)
+  df['Дата операции'] = pd.to_datetime(df['Дата операции'], dayfirst=True)
+  df['Сумма кэшбэка'] = round((df['Сумма платежа'] / 100), 2)
 
   # Преобразуем в datetime объект
   if isinstance(user_date, str):
@@ -125,16 +110,25 @@ def total_summ_from_file(user_date:str = "12.07.2021"):
   print(f"Начало месяца: {start_of_month.strftime('%d.%m.%Y')}")
   print(f"Конец месяца: {end_of_month.strftime('%d.%m.%Y')}")
 
+  filtered_data = df[(df['Дата операции'] >= start_of_month) & (df['Дата операции'] <= end_of_month)]
 
-  total_spent = (df.groupby('Номер карты')['Сумма платежа']
+  total_spent = (filtered_data.groupby('Номер карты')['Сумма платежа']
             .agg(lambda x: x.sum())
             .reset_index()
-            .sort_values('Сумма платежа', ascending=False))
+            .sort_values('Сумма платежа', ascending=True))
 
+  # cash_back = round(((filtered_data['Сумма платежа'])/100), 2)
 
-  return total_spent
+  cash_back = (filtered_data.groupby('Номер карты')['Сумма кэшбэка']
+            .agg(lambda x: x.sum())
+            .reset_index()
+            .sort_values('Сумма кэшбэка', ascending=True))
 
-print(total_summ_from_file("01.12.2021"))
+  merged_df = pd.merge(total_spent, cash_back, on='Номер карты')
+
+  return merged_df
+
+print(total_summ_from_file("01.06.2020"))
 
 
 
