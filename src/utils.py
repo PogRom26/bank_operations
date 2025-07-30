@@ -1,7 +1,10 @@
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 from dateutil.relativedelta import relativedelta
+import requests
+from dotenv import load_dotenv
 
 import openpyxl
 import pandas as pd
@@ -60,8 +63,6 @@ def last_four_digit_card(list_with_card):
 
 # x = card_list_with_stars()
 # print(last_four_digit_card(x))
-
-
 
 
 def total_summ_from_file(user_date:str = "04.09.2021"):
@@ -141,18 +142,97 @@ def top_transactions (user_date:str = "04.09.2021"):
 # print(top_transactions("11.12.2021"))
 
 
-def currency_rates():
+def get_currency_rate(currencies: list) -> any:
+  """Курс валют"""
 
-  pass
+  # Загрузка данных для обращения к API
+  load_dotenv()
+  api_key = os.getenv("API_KEY_FOR_CURRENCY")
+  headers = {"apikey": api_key}
+
+  # Определение валют. Рубль по умолчанию.
+  to = "RUB"
+
+  amount = 1
+
+  result_list = {}
+
+  for currency in currencies:
+    from_str = currency
+
+    # Адрес для обращения
+    url = f"https://api.apilayer.com/exchangerates_data/convert?to={to}&from={from_str}&amount={amount}"
+
+    response = requests.request("GET", url, headers=headers)
+
+    if response.status_code == 200:
+      data = response.json()
+      result_list[currency] = round((data["result"]), 2)
+
+  return result_list
+
+# list_w_currency = {"USD", "EUR"}
+# print(get_currency_rate(list(list_w_currency)))
+
+
+def load_currencies_from_json() -> list:
+  """Загружает список валют из JSON файла"""
+  # Загрузка данных
+  project_dir = Path(__file__).parent.parent
+  file = 'user_settings.json'
+  file_path = os.path.join(project_dir, file)
+
+  with open(file_path, 'r') as f:
+    data = json.load(f)
+    return data.get('user_currencies', [])
+
+# print(load_currencies_from_json())
+
+# print("Курсы валют к RUB:")
+# print(get_currency_rate(load_currencies_from_json()))
+
+
+def get_stock_prices(stocks: list) -> any:
+  """Стоимость акций из S&P500."""
+
+  # Загрузка данных для обращения к API
+  load_dotenv()
+  api_key = os.getenv("API_KEY_FOR_STOCK")
+  url = f"https://api.marketstack.com/v1/eod/latest?access_key={api_key}"
+
+  result_list = {}
+
+  for stock in stocks:
+    querystring = {"symbols": stock}
+    response = requests.get(url, params=querystring)
+
+    if response.status_code == 200:
+      data = response.json()
+      result_list[stock] = data["data"][0]["close"]
+    else:
+      print(response.status_code)
+
+  return result_list
+
+
+def load_stocks_from_json() -> list:
+  """Загружает список акций из JSON файла"""
+  # Загрузка данных
+  project_dir = Path(__file__).parent.parent
+  file = 'user_settings.json'
+  file_path = os.path.join(project_dir, file)
+
+  with open(file_path, 'r') as f:
+    data = json.load(f)
+    return data.get('user_stocks', [])
+
+
+# print(get_stock_prices(load_stocks_from_json()))
 
 
 
 
 
-
-"""Топ-5 транзакций по сумме платежа.
-Курс валют.
-Стоимость акций из S&P500."""
 
 
 
