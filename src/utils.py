@@ -94,9 +94,20 @@ def total_summ_from_file(user_date:str = "04.09.2021"):
 
   cards = {"card": merged_df_to_dict}
 
-  return cards
+  transformed_data = {
+    'card': [
+      {
+        'last_digits': card['Номер карты'].replace('*', ''),
+        'total_spent': card['Сумма платежа'],
+        'cashback': card['Сумма кэшбэка']
+      }
+      for card in cards['card']
+    ]
+  }
 
-print (total_summ_from_file("01.06.2021"))
+  return transformed_data
+
+# print (total_summ_from_file("01.06.2021"))
 
 
 def top_transactions (user_date:str = "04.09.2021"):
