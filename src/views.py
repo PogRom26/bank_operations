@@ -21,7 +21,7 @@ def operations_for_date(date_for_info) -> json:
     total_info = greeting_message | total_summ | top_oper | currency | stock
 
     # Преобразование в JSON-строку
-    json_data = json.dumps(total_info, ensure_ascii=False, indent=4)
+    json_data = json.dumps(total_info, ensure_ascii=False, indent=2)
 
 
     return json_data

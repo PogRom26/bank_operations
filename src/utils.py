@@ -34,22 +34,8 @@ def greeting(date:datetime = datetime.now()):
 
 # print(type(greeting()))
 
-
-def last_four_digit_card(list_with_card):
-  """По каждой карте: последние 4 цифры карты"""
-  list_card_wo_stars = []
-
-  for card in list_with_card:
-    list_card_wo_stars.append(card[-4:])
-
-  return list_card_wo_stars
-
-# x = card_list_with_stars()
-# print(last_four_digit_card(x))
-
-
-def total_summ_from_file(user_date:str = "04.09.2021"):
-
+def get_dataframe():
+  """ Определяет файл и создает по нему DataFrame для дальнейшего использования другими функциями """
   # Загрузка данных
   project_dir = Path(__file__).parent.parent
   data_dir = "data"
@@ -57,6 +43,13 @@ def total_summ_from_file(user_date:str = "04.09.2021"):
   file_path = os.path.join(project_dir, data_dir, file)
 
   df = pd.read_excel(file_path)
+
+  return df
+
+def data_frame_filtered_by_date(user_date:str = "04.09.2021"):
+  """ Использует базовый DataFrame и применяет к нему фильтрацию по дате """
+
+  df = get_dataframe()
   df['Дата операции'] = pd.to_datetime(df['Дата операции'], dayfirst=True)
   df['Сумма кэшбэка'] = round((df['Сумма платежа'] / 100), 2)
 
@@ -74,6 +67,16 @@ def total_summ_from_file(user_date:str = "04.09.2021"):
   # print(f"Конец месяца: {end_of_month.strftime('%d.%m.%Y')}")
 
   filtered_data = df[(df['Дата операции'] >= start_of_month) & (df['Дата операции'] <= end_of_month)]
+
+  return filtered_data
+
+# print(data_frame_filtered_by_date())
+
+
+def total_summ_from_file(user_date:str = "04.09.2021"):
+  """ Считает общую сумму платежей и кешбэк по карте """
+
+  filtered_data = data_frame_filtered_by_date()
 
   # Считаем суммы расходов по картам
   total_spent = (filtered_data.groupby('Номер карты')['Сумма платежа']
@@ -112,26 +115,11 @@ def total_summ_from_file(user_date:str = "04.09.2021"):
 
 def top_transactions (user_date:str = "04.09.2021"):
   """Топ-5 транзакций по сумме платежа."""
-  # Загрузка данных
-  project_dir = Path(__file__).parent.parent
-  data_dir = "data"
-  file = 'operations.xlsx'
-  file_path = os.path.join(project_dir, data_dir, file)
 
-  df = pd.read_excel(file_path)
-  df['Дата операции'] = pd.to_datetime(df['Дата операции'], dayfirst=True)
+  df = get_dataframe()
 
-  # Преобразуем в datetime объект
-  if isinstance(user_date, str):
-    date_obj = datetime.strptime(user_date, "%d.%m.%Y")
-  else:
-    date_obj = user_date
 
-  # Начало и конец месяца
-  start_of_month = date_obj.replace(day=1)
-  end_of_month = date_obj + relativedelta(day=31)
-
-  filtered_data = df[(df['Дата операции'] >= start_of_month) & (df['Дата операции'] <= end_of_month)]
+  filtered_data = data_frame_filtered_by_date()
 
   top_5 = filtered_data.nlargest(5, 'Сумма платежа')[['Дата платежа', 'Сумма платежа', 'Категория', 'Описание']]
 
