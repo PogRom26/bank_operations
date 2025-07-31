@@ -14,17 +14,17 @@ import pandas as pd
 def greeting(date:datetime = datetime.now()):
     """Определяет какое сейчас время и выводит соответствующие приветствие"""
 
-    current_time = datetime.now()
+    current_time = date.hour
 
-    if 6 < current_time.hour < 12:
+    if 6 < current_time < 12:
       hello = {"greeting": "Доброе утро!"}
       return hello
 
-    elif 12 < current_time.hour < 18:
+    elif 12 < current_time < 18:
       hello = {"greeting": "Добрый день!"}
       return hello
 
-    elif 18 < current_time.hour < 24:
+    elif 18 < current_time < 24:
       hello = {"greeting": "Добрый вечер!"}
       return hello
 
@@ -32,7 +32,7 @@ def greeting(date:datetime = datetime.now()):
       hello = {"greeting": "Доброй ночи!"}
       return hello
 
-# print(type(greeting()))
+# print(greeting())
 
 def get_dataframe():
   """ Определяет файл и создает по нему DataFrame для дальнейшего использования другими функциями """

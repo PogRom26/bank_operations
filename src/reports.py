@@ -1,14 +1,43 @@
-import os
 from datetime import datetime
-from pathlib import Path
-
 from dateutil.relativedelta import relativedelta
 from typing import Optional
 import pandas as pd
 from src.utils import get_dataframe
+from functools import wraps
+from pathlib import Path
+import os
 
 
+def save_results_to_file(filename):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Выполняем оригинальную функцию и получаем результат
+            result = func(*args, **kwargs)
+
+            # Строим путь к файлу относительно корневого каталога проекта
+            project_dir = Path(__file__).parent.parent
+            data_dir = "data"
+            full_filename = os.path.join(project_dir, data_dir, filename)
+
+            # Создаем каталог, если он не существует
+            directory = os.path.dirname(full_filename)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)
+
+            # Записываем результат в файл
+            with open(full_filename, mode='w', encoding='utf-8') as file:
+                output_line = f"{func.__name__} ({args}) => {result}\n"
+                file.write(output_line)
+
+            return result
+        return wrapper
+    return decorator
+
+
+@save_results_to_file("spending_by_category.json")
 def spending_by_category(category: str,
+
                          date: Optional[str] = None) -> pd.DataFrame:
 
     """ Функция принимает на вход: датафрейм с транзакциями, название категории, опциональную дату.
@@ -47,4 +76,6 @@ def spending_by_category(category: str,
 
     return category_sum
 
-# print(spending_by_category("Фастфуд", "04.07.2021"))
+print(spending_by_category("Фастфуд", "04.06.2021"))
+
+
