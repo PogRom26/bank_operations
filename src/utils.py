@@ -17,39 +17,22 @@ def greeting(date:datetime = datetime.now()):
     current_time = datetime.now()
 
     if 6 < current_time.hour < 12:
-        return "Доброе утро!"
+      hello = {"greeting": "Доброе утро!"}
+      return hello
 
     elif 12 < current_time.hour < 18:
-        return "Добрый день!"
+      hello = {"greeting": "Добрый день!"}
+      return hello
 
     elif 18 < current_time.hour < 24:
-        return "Добрый вечер!"
+      hello = {"greeting": "Добрый вечер!"}
+      return hello
 
     else:
-        return "Доброй ночи!"
+      hello = {"greeting": "Доброй ночи!"}
+      return hello
 
-
-def card_list_with_stars():
-  """Возвращает список карт со звездами (как есть в документе)"""
-
-  project_dir = Path(__file__).parent.parent
-  data_dir = "data"
-  file = 'operations.xlsx'
-  file_path = os.path.join(project_dir, data_dir, file)
-
-  df = pd.read_excel(file_path)
-
-  # Извлекаем уникальные номера карт
-  card_numbers_list = df['Номер карты'].unique().tolist()
-  card_list_w_stars = []
-
-  for card in card_numbers_list:
-    if type(card) == str:
-      card_list_w_stars.append(card)
-
-  return card_list_w_stars
-
-# print(card_list_with_stars())
+# print(type(greeting()))
 
 
 def last_four_digit_card(list_with_card):
@@ -94,22 +77,26 @@ def total_summ_from_file(user_date:str = "04.09.2021"):
 
   # Считаем суммы расходов по картам
   total_spent = (filtered_data.groupby('Номер карты')['Сумма платежа']
-            .agg(lambda x: x.sum())
+            .agg(lambda x: round(abs(x).sum(), 2))
             .reset_index()
             .sort_values('Сумма платежа', ascending=True))
 
   # Считаем суммы кэшбэка по картам
   cash_back = (filtered_data.groupby('Номер карты')['Сумма кэшбэка']
-            .agg(lambda x: x.sum())
+            .agg(lambda x: round(abs(x).sum(), 2))
             .reset_index()
             .sort_values('Сумма кэшбэка', ascending=True))
 
   # Объединяем суммы расходов и суммы кэшбэка
   merged_df = pd.merge(total_spent, cash_back, on='Номер карты')
 
-  return merged_df
+  merged_df_to_dict = merged_df.to_dict('records')
 
-# print(total_summ_from_file("01.06.2020"))
+  cards = {"card": merged_df_to_dict}
+
+  return cards
+
+print (total_summ_from_file("01.06.2021"))
 
 
 def top_transactions (user_date:str = "04.09.2021"):
@@ -137,7 +124,27 @@ def top_transactions (user_date:str = "04.09.2021"):
 
   top_5 = filtered_data.nlargest(5, 'Сумма платежа')[['Дата платежа', 'Сумма платежа', 'Категория', 'Описание']]
 
-  return top_5
+  merged_df_to_dict = top_5.to_dict('records')
+
+  list_top_transactions = {"top_transactions" : merged_df_to_dict}
+
+  # Словарь для маппинга русских ключей на английские
+  key_mapping = {
+    'Дата платежа': 'date',
+    'Сумма платежа': 'amount',
+    'Категория': 'category',
+    'Описание': 'description'
+  }
+
+  # Преобразование данных
+  transformed_data = {
+    'top_transactions': [
+      {key_mapping[rus_key]: value for rus_key, value in transaction.items()}
+      for transaction in list_top_transactions['top_transactions']
+    ]
+  }
+
+  return transformed_data
 
 # print(top_transactions("11.12.2021"))
 
@@ -168,11 +175,19 @@ def get_currency_rate(currencies: list) -> any:
     if response.status_code == 200:
       data = response.json()
       result_list[currency] = round((data["result"]), 2)
+    else:
+      print(response.status_code)
 
-  return result_list
+  total_list = {"currency_rates": result_list}
 
-# list_w_currency = {"USD", "EUR"}
-# print(get_currency_rate(list(list_w_currency)))
+  transformed_data = {
+    'currency_rates': [
+      {'currency': currency, 'rate': rate}
+      for currency, rate in total_list['currency_rates'].items()
+    ]
+  }
+
+  return transformed_data
 
 
 def load_currencies_from_json() -> list:
@@ -187,7 +202,7 @@ def load_currencies_from_json() -> list:
     return data.get('user_currencies', [])
 
 # print(load_currencies_from_json())
-
+#
 # print("Курсы валют к RUB:")
 # print(get_currency_rate(load_currencies_from_json()))
 
@@ -212,7 +227,16 @@ def get_stock_prices(stocks: list) -> any:
     else:
       print(response.status_code)
 
-  return result_list
+  total_list = {"stock_prices": result_list}
+
+  transformed_data = {
+    'stock_prices': [
+      {'stock': currency, 'price': rate}
+      for currency, rate in total_list['stock_prices'].items()
+    ]
+  }
+
+  return transformed_data
 
 
 def load_stocks_from_json() -> list:
@@ -228,90 +252,3 @@ def load_stocks_from_json() -> list:
 
 
 # print(get_stock_prices(load_stocks_from_json()))
-
-
-
-
-
-
-
-
-var = {
-  "greeting": "Добрый день",
-  "cards": [
-    {
-      "last_digits": "5814",
-      "total_spent": 1262.00,
-      "cashback": 12.62
-    },
-    {
-      "last_digits": "7512",
-      "total_spent": 7.94,
-      "cashback": 0.08
-    }
-  ],
-  "top_transactions": [
-    {
-      "date": "21.12.2021",
-      "amount": 1198.23,
-      "category": "Переводы",
-      "description": "Перевод Кредитная карта. ТП 10.2 RUR"
-    },
-    {
-      "date": "20.12.2021",
-      "amount": 829.00,
-      "category": "Супермаркеты",
-      "description": "Лента"
-    },
-    {
-      "date": "20.12.2021",
-      "amount": 421.00,
-      "category": "Различные товары",
-      "description": "Ozon.ru"
-    },
-    {
-      "date": "16.12.2021",
-      "amount": -14216.42,
-      "category": "ЖКХ",
-      "description": "ЖКУ Квартира"
-    },
-    {
-      "date": "16.12.2021",
-      "amount": 453.00,
-      "category": "Бонусы",
-      "description": "Кешбэк за обычные покупки"
-    }
-  ],
-  "currency_rates": [
-    {
-      "currency": "USD",
-      "rate": 73.21
-    },
-    {
-      "currency": "EUR",
-      "rate": 87.08
-    }
-  ],
-  "stock_prices": [
-    {
-      "stock": "AAPL",
-      "price": 150.12
-    },
-    {
-      "stock": "AMZN",
-      "price": 3173.18
-    },
-    {
-      "stock": "GOOGL",
-      "price": 2742.39
-    },
-    {
-      "stock": "MSFT",
-      "price": 296.71
-    },
-    {
-      "stock": "TSLA",
-      "price": 1007.08
-    }
-  ]
-}
