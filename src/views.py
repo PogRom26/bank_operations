@@ -1,10 +1,7 @@
-import datetime
 import json
-from src.utils import (greeting,
-                       total_summ_from_file,
-                       top_transactions,
-                       get_currency_rate, load_currencies_from_json,
-                       get_stock_prices, load_stocks_from_json)
+
+from src.utils import (get_currency_rate, get_stock_prices, greeting, load_currencies_from_json, load_stocks_from_json,
+                       top_transactions, total_summ_from_file)
 
 
 def operations_for_date(date_for_info) -> json:
@@ -23,7 +20,4 @@ def operations_for_date(date_for_info) -> json:
     # Преобразование в JSON-строку
     json_data = json.dumps(total_info, ensure_ascii=False, indent=2)
 
-
     return json_data
-
-print(operations_for_date("04.09.2021"))
