@@ -1,0 +1,69 @@
+import os
+from datetime import datetime
+from functools import wraps
+from pathlib import Path
+from typing import Optional
+
+import pandas as pd
+from dateutil.relativedelta import relativedelta
+
+
+def save_results_to_file(filename):
+    """Декоратор для сохранения результата выполнения функции в файл"""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Выполняем оригинальную функцию и получаем результат
+            result = func(*args, **kwargs)
+
+            # Строим путь к файлу относительно корневого каталога проекта
+            project_dir = Path(__file__).parent.parent
+            data_dir = "data"
+            full_filename = os.path.join(project_dir, data_dir, filename)
+
+            # Создаем каталог, если он не существует
+            directory = os.path.dirname(full_filename)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)
+
+            # Записываем результат в файл
+            with open(full_filename, mode="w", encoding="utf-8") as file:
+                output_line = f"{func.__name__} ({args}) => {result}\n"
+                file.write(output_line)
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+@save_results_to_file("spending_by_category.json")
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
+    """Функция принимает на вход: датафрейм с транзакциями, название категории, опциональную дату.
+    Если дата не передана, то берется текущая дата.
+    Функция возвращает траты по заданной категории за последние три месяца (от переданной даты)."""
+
+    df = transactions.copy()
+
+    if df.empty:
+        return "Нет информации для обработки (возможно файл пуст)"
+    else:
+
+        df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
+
+        # Определяем дату для фильтрации
+        if date is None:
+            date_for_filter = datetime.now()
+        else:
+            date_for_filter = datetime.strptime(date, "%d.%m.%Y")
+
+        # Начало и конец месяца
+        three_months_ago = date_for_filter - relativedelta(months=3)
+
+        filtered_data = df[(df["Дата операции"] >= three_months_ago) & (df["Дата операции"] <= date_for_filter)]
+
+        category_sum = filtered_data.loc[filtered_data["Категория"] == category, "Сумма платежа"].abs().sum()
+
+        return category_sum
